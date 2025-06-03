@@ -14,6 +14,11 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -48,14 +53,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise middleware should be right after security
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'aorbo_project.middleware.NgrokProxyMiddleware',  # Add NgrokProxyMiddleware
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise middleware
 ]
 
 ROOT_URLCONF = 'aorbo_project.urls'
@@ -82,13 +86,40 @@ WSGI_APPLICATION = 'aorbo_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+try:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+    
+    # Log database configuration (without sensitive info)
+    if DATABASES['default']:
+        db_config = DATABASES['default'].copy()
+        if 'PASSWORD' in db_config:
+            db_config['PASSWORD'] = '***'
+        logger.info(f"Database configuration: {db_config}")
+    else:
+        logger.error("Database configuration is empty!")
+        
+except Exception as e:
+    logger.error(f"Error configuring database: {str(e)}")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'dummy',
+            'USER': 'dummy',
+            'PASSWORD': 'dummy',
+            'HOST': 'dummy',
+            'PORT': '5432',
+        }
+    }
+
+# Ensure the database engine is set to PostgreSQL
+if DATABASES['default']:
+    DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql'
 
 
 # Password validation
@@ -141,12 +172,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CSRF Trusted Origins for ngrok
-CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app', 'http://*.ngrok-free.app']
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'http://*.onrender.com',
+]
 
-# Session and CSRF cookie settings for ngrok
-SESSION_COOKIE_SECURE = False  # Set to True if using HTTPS only
-CSRF_COOKIE_SECURE = False     # Set to True if using HTTPS only
+# Session and CSRF cookie settings
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Security settings for production
@@ -159,6 +193,7 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    ALLOWED_HOSTS = ['.onrender.com']  # Restrict to Render domain in production
 
 # Supabase settings
 SUPABASE_URL = os.getenv('SUPABASE_URL')
