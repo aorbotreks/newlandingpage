@@ -4,13 +4,21 @@ __pycache__/
 *$py.class
 *.so
 .Python
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Django
 *.log
@@ -18,9 +26,14 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
-
-# Static files
 staticfiles/
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
 
 # IDE
 .idea/
@@ -30,10 +43,4 @@ staticfiles/
 
 # OS
 .DS_Store
-Thumbs.db
-
-# Project specific
-*.bat
-start_ngrok.bat
-start_with_ngrok.py
-README_NGROK.md 
+Thumbs.db 

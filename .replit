@@ -1,0 +1,29 @@
+run = "python manage.py runserver 0.0.0.0:8000"
+hidden = [".build", "venv", "staticfiles", "media"]
+modules = ["python-3.10:v18-20230807-322e88b"]
+
+[nix]
+channel = "stable-22_11"
+
+[env]
+PYTHONPATH = "${PYTHONPATH}:${REPL_HOME}"
+
+[packager]
+language = "python3"
+ignoredPackages = ["unit_tests"]
+
+[packager.features]
+packageSearch = true
+guessImports = true
+enabledForHosting = false
+
+[languages.python3]
+pattern = "**/{*.py,*.pyw,*.pyi}"
+syntax = "python"
+
+[languages.python3.languageServer]
+start = "pylsp"
+
+[deployment]
+run = ["sh", "-c", "python manage.py runserver 0.0.0.0:8000"]
+deploymentTarget = "cloudrun" 
