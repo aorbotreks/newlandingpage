@@ -5,11 +5,9 @@ services:
     env: python
     buildCommand: |
       pip install -r requirements.txt
-<<<<<<< HEAD
-      python manage.py makemigrations
-=======
->>>>>>> 9ad987c5ec2ece4de80472dac0c5b478dfbcf898
-      python manage.py migrate
+      python manage.py makemigrations treks_app --noinput
+      python manage.py migrate treks_app --noinput
+      python manage.py migrate --noinput
       python manage.py collectstatic --noinput
     startCommand: gunicorn aorbo_project.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
@@ -34,8 +32,4 @@ services:
   - type: postgres
     name: aorbo-db
     plan: free
-<<<<<<< HEAD
-    ipAllowList: [] 
-=======
-    ipAllowList: [] 
->>>>>>> 9ad987c5ec2ece4de80472dac0c5b478dfbcf898
+    ipAllowList: []
